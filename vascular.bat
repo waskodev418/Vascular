@@ -42,7 +42,7 @@ echo                 PDO::ATTR_DEFAULT_FETCH_MODE =^> PDO::FETCH_ASSOC, >> backe
 echo                 PDO::MYSQL_ATTR_USE_BUFFERED_QUERY =^> true >> backend\config\database.inc.php
 echo             ]^); >> backend\config\database.inc.php
 echo             $this-^>build($db^); >> backend\config\database.inc.php
-echo         } catch (PDOException $e^) { die("Errore DB: " . $e-^>getMessage(^)^); } >> backend\config\database.inc.php
+echo         } catch (PDOException $e^) { http_response_code(500); exit; } >> backend\config\database.inc.php
 echo     } >> backend\config\database.inc.php
 echo     private function build($db^){ >> backend\config\database.inc.php
 echo       $this-^>pdo-^>exec("CREATE DATABASE IF NOT EXISTS `$db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"^); >> backend\config\database.inc.php
@@ -72,7 +72,7 @@ echo     } >> backend\config\database.inc.php
 echo   } >> backend\config\database.inc.php
 echo   function standardQuery(Database $db, $query, $params = []^) { >> backend\config\database.inc.php
 echo     try { return $db-^>fetchAll($query, $params^); } >> backend\config\database.inc.php
-echo     catch (PDOException $th^) { http_response_code(500^); echo "errore db"; exit; } >> backend\config\database.inc.php
+echo     catch (PDOException $th^) { http_response_code(500^); exit; } >> backend\config\database.inc.php
 echo   } >> backend\config\database.inc.php
 echo   function getDB(^){ >> backend\config\database.inc.php
 echo     return new Database("%dbH%", "%dbN%", "%dbU%", "%dbP%"^); >> backend\config\database.inc.php
@@ -110,7 +110,7 @@ echo             await this.init(^);
 echo         } catch (error^) { console.error(error^); }
 echo     }
 echo     async call(url, http = {}^){
-echo         const response = await fetch("./backend/" + url, http^);
+echo         const response = await fetch("../backend/" + url, http^);
 echo         if(response.ok^) return await response.json(^);
 echo         else throw new Error("fallita"^);
 echo     }
