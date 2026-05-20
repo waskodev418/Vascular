@@ -178,4 +178,3 @@ call ./vsc.bat %ep%
 
 :: end
 powershell -NoLogo -NoExit -Command "Clear-Host; Write-Host '========================================' -ForegroundColor Cyan; Write-Host ' Setup VASCULAR completato ' -ForegroundColor Magenta; Write-Host ' Progetto >> %projName% << creato! ' -ForegroundColor White; Write-Host '========================================' -ForegroundColor Cyan;"
-
