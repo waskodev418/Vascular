@@ -2,8 +2,8 @@
   class Database {
     private $pdo;
 
-    public function __construct($host, $db, $user, $password) {
-        $dsn = "mysql:host=$host;charset=utf8mb4";
+    public function __construct($host, $port, $db, $user, $password) {
+        $dsn = "mysql:host=$host;port=$port;charset=utf8mb4";
         $this->pdo = new PDO($dsn, $user, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -28,41 +28,64 @@
       }
     }
 
-    public function query($query, $params = []) {
+    public function sql($query, $params = []) {
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($params);
         return $stmt;
     }
 
-    public function fetchAll($query, $params = []) {
-        return $this->query($query, $params)->fetchAll();
+    public function execute($query, $params = []) {
+        try {
+          $this->sql($query, $params);
+          return true;
+        } catch (PDOException $e) {
+          return false;
+        }
     }
 
-    public function fetchOne($query, $params = []) {
-        $res = $this->query($query, $params)->fetch();
-        return $res ? $res : []; 
+    public function query($query, $params = []) {
+        return $this->sql($query, $params)->fetchAll();
+    }
+
+    private static function getDB(){
+      
     }
   }
 
   // funzioni funzionali ;) ----------------------------------
   
-  function standardQuery(Database $db, $query, $params = []) {
-    try {
-      return $db->fetchAll($query, $params);
-    } catch (PDOException $th) {
-      http_response_code(500);
-      error_log("errore: " . $th->getMessage());
-      echo "errore di connessione con il db";
-      exit;
-    }
-  }
+  class DbUtils {
+      
+      public static function getDB(){
+        $host = "localhost";
+        $db   = "gestione_fotocopiatrici_buzzi";
+        $user = "root";
+        $pass = "";
+        $port = 3306;
 
-  function getDB(){
-    $host = "localhost";
-    $db   = "gestione_fotocopiatrici_buzzi";
-    $user = "root";
-    $pass = "";
+        return new Database($host, $port, $db, $user, $pass);
+      }
 
-    return new Database($host, $db, $user, $pass);
+      public static function standardQuery($query, $params = [], Database $db = null) {
+        $database = $db ?? self::getDB();
+        try {
+          return $database->query($query, $params);
+        } catch (Exception $th) {
+          error_log("StandardQuery Error: " . $th->getMessage());
+          http_response_code(500);
+          exit;
+        }
+      }
+
+      public static function standardExec($query, $params = [], Database $db = null) {
+        $database = $db ?? self::getDB();
+        $success = $database->execute($query, $params);
+
+        if (!$success){
+          error_log("StandardExec Error: Query fallita");
+          http_response_code(500);
+          exit;
+        }
+      }
   }
 ?>

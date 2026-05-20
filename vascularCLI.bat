@@ -1,7 +1,7 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal disabledelayedexpansion
 
-:: 1. Gestione Nome Progetto (Parametro o Input)
+:: Gestione Nome Progetto (Parametro o Input)
 set "projName=%~1"
 if "%projName%"=="" (
     set /p projName="[1/6] Nome del progetto: "
@@ -17,6 +17,10 @@ set "dbH=localhost"
 set /p uH="[3/6] Host DB (default: localhost): "
 if not "%uH%"=="" set "dbH=%uH%"
 
+set "dbPort=3306"
+set /p uPort="[3.5/6] Porta DB (default: 3306): "
+if not "%uPort%"=="" set "dbPort=%uPort%"
+
 set "dbU=root"
 set /p uD="[4/6] Utente DB (default: root): "
 if not "%uD%"=="" set "dbU=%uD%"
@@ -29,66 +33,77 @@ set "dbN=%projName%"
 set /p uDN="[6/6] Nome Database (default: %projName%): "
 if not "%uDN%"=="" set "dbN=%uDN%"
 
-:: 1. Cartelle
+:: crea la struttura delle cartelle
 mkdir %projName%
 cd %projName%
 mkdir backend backend\config backend\props components root
 
-:: 2. Database.php (Riga per riga per evitare errori di parsing)
-echo ^<?php > backend\config\database.inc.php
-echo   class Database { >> backend\config\database.inc.php
-echo     private $pdo; >> backend\config\database.inc.php
-echo     public function __construct($host, $db, $user, $password^) { >> backend\config\database.inc.php
-echo         $dsn = "mysql:host=$host;charset=utf8mb4"; >> backend\config\database.inc.php
-echo         try { >> backend\config\database.inc.php
-echo             $this-^>pdo = new PDO($dsn, $user, $password, [ >> backend\config\database.inc.php
-echo                 PDO::ATTR_ERRMODE =^> PDO::ERRMODE_EXCEPTION, >> backend\config\database.inc.php
-echo                 PDO::ATTR_DEFAULT_FETCH_MODE =^> PDO::FETCH_ASSOC, >> backend\config\database.inc.php
-echo                 PDO::MYSQL_ATTR_USE_BUFFERED_QUERY =^> true >> backend\config\database.inc.php
-echo             ]^); >> backend\config\database.inc.php
-echo             $this-^>build($db^); >> backend\config\database.inc.php
-echo         } catch (PDOException $e^) { http_response_code(500); exit; } >> backend\config\database.inc.php
-echo     } >> backend\config\database.inc.php
-echo     private function build($db^){ >> backend\config\database.inc.php
-echo       $this-^>pdo-^>exec("CREATE DATABASE IF NOT EXISTS `$db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"^); >> backend\config\database.inc.php
-echo       $this-^>pdo-^>exec("USE `$db` "^); >> backend\config\database.inc.php
-echo       $check = $this-^>pdo-^>query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$db'")-^>fetchColumn(); >> backend\config\database.inc.php
-echo       $path = __DIR__ . "/db.sql"; >> backend\config\database.inc.php
-echo       if (file_exists($path^) ^&^& !$check^) { >> backend\config\database.inc.php
-echo           $sql = trim(file_get_contents($path^)^); >> backend\config\database.inc.php
-echo           if (!empty($sql^)^) { >> backend\config\database.inc.php
-echo               $this-^>pdo-^>setAttribute(PDO::ATTR_EMULATE_PREPARES, 1^); >> backend\config\database.inc.php
-echo               $this-^>pdo-^>exec($sql^); >> backend\config\database.inc.php
-echo           } >> backend\config\database.inc.php
-echo       } >> backend\config\database.inc.php
-echo     } >> backend\config\database.inc.php
-echo     public function query($query, $params = []^) { >> backend\config\database.inc.php
-echo         $stmt = $this-^>pdo-^>prepare($query^); >> backend\config\database.inc.php
-echo         $stmt-^>execute($params^); >> backend\config\database.inc.php
-echo         return $stmt; >> backend\config\database.inc.php
-echo     } >> backend\config\database.inc.php
-echo     public function fetchAll($query, $params = []^) { >> backend\config\database.inc.php
-echo         return $this-^>query($query, $params^)-^>fetchAll(); >> backend\config\database.inc.php
-echo     } >> backend\config\database.inc.php
-echo     public function fetchOne($query, $params = []^) { >> backend\config\database.inc.php
-echo         $res = $this-^>query($query, $params^)-^>fetch(); >> backend\config\database.inc.php
-echo         return $res ? $res : []; >> backend\config\database.inc.php
-echo     } >> backend\config\database.inc.php
-echo   } >> backend\config\database.inc.php
-echo   function standardQuery(Database $db, $query, $params = []^) { >> backend\config\database.inc.php
-echo     try { return $db-^>fetchAll($query, $params^); } >> backend\config\database.inc.php
-echo     catch (PDOException $th^) { http_response_code(500^); exit; } >> backend\config\database.inc.php
-echo   } >> backend\config\database.inc.php
-echo   function getDB(^){ >> backend\config\database.inc.php
-echo     return new Database("%dbH%", "%dbN%", "%dbU%", "%dbP%"^); >> backend\config\database.inc.php
-echo   } >> backend\config\database.inc.php
-echo ?^> >> backend\config\database.inc.php
+:: Database.inc.php
+(
+echo ^<?php 
+echo class Database {
+echo   private $pdo; 
+echo   public function __construct($host, $port, $db, $user, $password^) { 
+echo     $dsn = "mysql:host=$host;port=$port;charset=utf8mb4";
+echo     try { 
+echo       $this-^>pdo = new PDO($dsn, $user, $password, [ 
+echo         PDO::ATTR_ERRMODE =^> PDO::ERRMODE_EXCEPTION, 
+echo         PDO::ATTR_DEFAULT_FETCH_MODE =^> PDO::FETCH_ASSOC, 
+echo         PDO::MYSQL_ATTR_USE_BUFFERED_QUERY =^> true 
+echo       ]^); 
+echo       $this-^>build($db^); 
+echo     } catch (PDOException $e^) { http_response_code(500^); exit; } 
+echo   } 
+echo   private function build($db^){ 
+echo     $this-^>pdo-^>exec("CREATE DATABASE IF NOT EXISTS `$db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"^);
+echo     $this-^>pdo-^>exec("USE `$db` "^); 
+echo     $check = $this-^>pdo-^>query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$db'"^)-^>fetchColumn(^);
+echo     $path = __DIR__ . "/db.sql"; 
+echo     if (file_exists($path^) ^&^& !$check^) { 
+echo       $sql = trim(file_get_contents($path^)^); 
+echo       if (!empty($sql^)^) { 
+echo         $this-^>pdo-^>setAttribute(PDO::ATTR_EMULATE_PREPARES, 1^); 
+echo         $this-^>pdo-^>exec($sql^); 
+echo       } 
+echo     } 
+echo   } 
+echo   public function sql($query, $params = []^) { 
+echo     $stmt = $this-^>pdo-^>prepare($query^); 
+echo     $stmt-^>execute($params^); 
+echo     return $stmt; 
+echo   } 
+echo   public function execute($query, $params = []^) { 
+echo     try { $this-^>sql($query, $params^); return true; } 
+echo     catch (PDOException $e^) { return false; } 
+echo   } 
+echo   public function query($query, $params = []^) { 
+echo     return $this-^>sql($query, $params^)-^>fetchAll(^); 
+echo   } 
+echo } 
+echo class DbUtils { 
+echo   public static function getDB(^){ 
+echo     return new Database("%dbH%", "%dbPort%", "%dbN%", "%dbU%", "%dbP%"^);
+echo   } 
+echo   public static function standardQuery($q, $p = [], $db = null^) { 
+echo     $d = $db ?? self::getDB(^); 
+echo     try { return $d-^>query($q, $p^); } 
+echo     catch (Exception $e^) { http_response_code(500^); exit; } 
+echo   } 
+echo   public static function standardExec($q, $p = [], $db = null^) {
+echo     $d = $db ?? self::getDB(^); 
+echo     if (!$d-^>execute($q, $p^)^) { http_response_code(500^); exit; }
+echo     return true; 
+echo   } 
+echo }
+echo ?^>
+) > backend\config\database.inc.php
 
-:: 3. Altri file (più semplici)
+:: Altri file di configurazione
 echo CREATE DATABASE IF NOT EXISTS %dbN%; > backend\config\db.sql
 echo USE %dbN%; >> backend\config\db.sql
 echo # scrivi qui il codice SQL >> backend\config\db.sql
 
+:: Classe padre dei componenti
 (
 echo class Store {
 echo     #data = {}; 
@@ -131,6 +146,7 @@ echo     async init(^) {}
 echo }
 ) > root\Component.js
 
+:: router
 (
 echo const urlComponents = "../components/";
 echo async function router(^) {
@@ -158,7 +174,7 @@ echo ^<body^>^<main id="app-root"^>^</main^>^<script type="module" src="./root/r
 echo ^</html^>
 ) > index.html
 
-:: 4. VSC - crea componenente
+:: VSC - crea componenente
 echo @echo off > vsc.bat
 echo set "cN=%%~1" >> vsc.bat
 echo if "%%cN%%"=="" ( echo Errore: specifica nome componente ^& exit /b ) >> vsc.bat
