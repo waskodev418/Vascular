@@ -4,24 +4,29 @@ setlocal enabledelayedexpansion
 :: 1. Gestione Nome Progetto (Parametro o Input)
 set "projName=%~1"
 if "%projName%"=="" (
-    set /p projName="[1/5] Nome del progetto: "
+    set /p projName="[1/6] Nome del progetto: "
 )
+
+:: Entry point
+set "ep=home"
+set /p epH="[2/6] Entry point (default: home): "
+if not "%epH%"=="" set "ep=%epH%"
 
 :: Default
 set "dbH=localhost"
-set /p uH="[2/5] Host DB (default: localhost): "
+set /p uH="[3/6] Host DB (default: localhost): "
 if not "%uH%"=="" set "dbH=%uH%"
 
 set "dbU=root"
-set /p uD="[3/5] Utente DB (default: root): "
+set /p uD="[4/6] Utente DB (default: root): "
 if not "%uD%"=="" set "dbU=%uD%"
 
 set "dbP="
-set /p uP="[4/5] Password DB (default: nessuna): "
+set /p uP="[5/6] Password DB (default: nessuna): "
 if not "%uP%"=="" set "dbP=%uP%"
 
 set "dbN=%projName%"
-set /p uDN="[5/5] Nome Database (default: %projName%): "
+set /p uDN="[6/6] Nome Database (default: %projName%): "
 if not "%uDN%"=="" set "dbN=%uDN%"
 
 :: 1. Cartelle
@@ -130,7 +135,7 @@ echo }
 echo const urlComponents = "../components/";
 echo async function router(^) {
 echo     const container = document.getElementById('app-root'^);
-echo     const hash = window.location.hash.substring(1^) ^|^| 'login';
+echo     const hash = window.location.hash.substring(1^) ^|^| '%ep%';
 echo     history.replaceState(null, "", window.location.pathname^);
 echo     const parts = hash.split('/'^);
 echo     const componentName = parts[parts.length - 1];
@@ -168,4 +173,9 @@ echo set "P3=$js='import Component from \"../../root/Component.js\";' + $nl + $n
 echo set "P4=Write-Host '>>> Componente' $n 'creato con successo!' -ForegroundColor Green" >> vsc.bat
 echo powershell %%PS_OPTS%% "%%P1%% %%P2%% %%P3%% %%P4%%" >> vsc.bat
 
+:: genera entry point
+call ./vsc.bat %ep%
+
+:: end
 powershell -NoLogo -NoExit -Command "Clear-Host; Write-Host '========================================' -ForegroundColor Cyan; Write-Host ' Setup VASCULAR completato ' -ForegroundColor Magenta; Write-Host ' Progetto >> %projName% << creato! ' -ForegroundColor White; Write-Host '========================================' -ForegroundColor Cyan;"
+

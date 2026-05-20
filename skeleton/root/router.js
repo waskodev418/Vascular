@@ -3,7 +3,7 @@ const urlComponents = "../components/";
 async function router() {
     const container = document.getElementById('app-root');
     
-    const hash = window.location.hash.substring(1) || 'login';
+    const hash = window.location.hash.substring(1) || 'entry_point';
     history.replaceState(null, "", window.location.pathname);
     const parts = hash.split('/');
     const componentName = parts[parts.length - 1];
