@@ -48,8 +48,7 @@ echo     $dsn = "mysql:host=$host;port=$port;charset=utf8mb4";
 echo     try { 
 echo       $this-^>pdo = new PDO($dsn, $user, $password, [ 
 echo         PDO::ATTR_ERRMODE =^> PDO::ERRMODE_EXCEPTION, 
-echo         PDO::ATTR_DEFAULT_FETCH_MODE =^> PDO::FETCH_ASSOC, 
-echo         PDO::MYSQL_ATTR_USE_BUFFERED_QUERY =^> true 
+echo         PDO::ATTR_DEFAULT_FETCH_MODE =^> PDO::FETCH_ASSOC 
 echo       ]^); 
 echo       $this-^>build($db^); 
 echo     } catch (PDOException $e^) { http_response_code(500^); exit; } 
@@ -81,18 +80,19 @@ echo     return $this-^>sql($query, $params^)-^>fetchAll(^);
 echo   } 
 echo } 
 echo class DbUtils { 
-echo   public static function getDB(^){ 
-echo     return new Database("%dbH%", "%dbPort%", "%dbN%", "%dbU%", "%dbP%"^);
+echo   private static $con = null;
+echo   public static function getDB(^){
+echo     if(self::$con === null^) self::$con = new Database("%dbH%", "%dbPort%", "%dbN%", "%dbU%", "%dbP%"^);    
+echo     return self::$con;
 echo   } 
-echo   public static function standardQuery($q, $p = [], $db = null^) { 
+echo   public static function query($q, $p = [], $db = null^) { 
 echo     $d = $db ?? self::getDB(^); 
 echo     try { return $d-^>query($q, $p^); } 
-echo     catch (Exception $e^) { http_response_code(500^); exit; } 
+echo     catch (Exception $e^) { http_response_code(500^); ^echo json_encode(["SQLError" =^> $e-^>getMessage(^)^]^); exit; } 
 echo   } 
-echo   public static function standardExec($q, $p = [], $db = null^) {
+echo   public static function execute($q, $p = [], $db = null^) {
 echo     $d = $db ?? self::getDB(^); 
-echo     if (!$d-^>execute($q, $p^)^) { http_response_code(500^); exit; }
-echo     return true; 
+echo     return $d-^>execute($q, $p^);
 echo   } 
 echo }
 echo ?^>
@@ -130,7 +130,7 @@ echo             await this.init(^);
 echo         } catch (error^) { console.error(error^); }
 echo     }
 echo     async call(url, http = {}^){
-echo         const response = await fetch("../backend/" + url, http^);
+echo         const response = await fetch("./backend/" + url, http^);
 echo         if(response.ok^) return await response.json(^);
 echo         else throw new Error("fallita"^);
 echo     }
