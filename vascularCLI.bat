@@ -38,6 +38,15 @@ mkdir %projName%
 cd %projName%
 mkdir backend backend\config backend\props components root
 
+::sicurezza
+(
+echo Deny from all
+) > backend\config\.htaccess
+
+(
+echo Deny from all
+) > backend\props\.htaccess
+
 :: Database.inc.php
 (
 echo ^<?php 
