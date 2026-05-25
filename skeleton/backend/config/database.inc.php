@@ -40,7 +40,7 @@ class Database {
 class DbUtils { 
   private static $con = null;
   public static function getDB(){
-    if(self::$con === null) self::$con = new Database("localhost", "3306", "db1_prova", "root", "");    
+    if(self::$con === null) self::$con = new Database("host", "port", "database", "user", "password");    
     return self::$con;
   } 
   public static function query($q, $p = [], $db = null) { 
