@@ -49,7 +49,8 @@ echo Deny from all
 
 :: Database.inc.php
 (
-echo ^<?php 
+echo ^<?php
+echo header("Content-Type: application/json"^); 
 echo class Database {
 echo   private $pdo; 
 echo   public function __construct($host, $port, $db, $user, $password^) { 
